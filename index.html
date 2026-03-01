@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#007bff">
+    <link rel="apple-touch-icon" href="iconapp.png">
+    <title>TeknisiApp</title>
+    <style>
+        :root {
+            --primary: #173b8b;
+            --bg: #f8fafc;
+            --text: #000000;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        h2 { margin-top: 0; color: var(--primary); font-size: 1.5rem; }
+
+        .form-group { margin-bottom: 15px; }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            box-sizing: border-box; /* Biar gak luber */
+            font-size: 1rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .row .form-group { flex: 1; }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:active { transform: scale(0.98); }
+
+        /* Mode Mobile */
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            .container { padding: 20px; border-radius: 0; box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Input Data Pekerjaan</h2>
+    <form id="logForm">
+        <div class="form-group">
+            <label>Tanggal</label>
+            <input type="date" id="tanggal" required>
+        </div>
+
+        <div class="form-group">
+            <label>Nama Pelanggan</label>
+            <input type="text" id="nama" placeholder="Nama Pelanggan" required>
+        </div>
+
+        <div class="row">
+            <div class="form-group">
+                <label>Jam Mulai</label>
+                <input type="time" id="jamMulai">
+            </div>
+            <div class="form-group">
+                <label>Jam Selesai</label>
+                <input type="time" id="jamSelesai">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Jenis Trouble / Keterangan</label>
+            <textarea id="keterangan" rows="3" placeholder="Jelaskan kendala teknis..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Status</label>
+            <select id="status">
+                <option value="belum">Belum Selesai</option>
+                <option value="proses">Dalam Proses</option>
+                <option value="selesai">Selesai</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Freelance</label>
+            <input type="text" id="freelance" value="-">
+        </div>
+
+        <button type="submit">Kirim Laporan</button>
+    </form>
+</div>
+
+<script>
+    // Ganti baris ini di kode kamu
+const scriptURL = 'https://script.google.com/macros/s/AKfycbzX1lppwU0FknPzagDkkfiOfQ-AbO0tUfdxILtfLt97IhEHjZX4ljsqQNo11VBruwEl/exec';
+
+const form = document.getElementById('logForm');
+
+form.addEventListener('submit', e => {
+    e.preventDefault();
+    
+    // Tombol loading agar tidak klik dua kali
+    const btn = form.querySelector('button');
+    btn.disabled = true;
+    btn.innerText = 'Sedang Mengirim...';
+
+    const data = {
+        tanggal: document.getElementById('tanggal').value,
+        nama: document.getElementById('nama').value,
+        jamMulai: document.getElementById('jamMulai').value,
+        jamSelesai: document.getElementById('jamSelesai').value,
+        keterangan: document.getElementById('keterangan').value,
+        status: document.getElementById('status').value,
+        freelance: document.getElementById('freelance').value
+    };
+
+    // Mengirim data ke Google Sheets
+    fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    })
+    .then(response => {
+        alert('Mantap! Data sudah masuk ke Google Sheets.');
+        form.reset();
+        // Reset tanggal ke hari ini dan freelance ke default
+        document.getElementById('tanggal').valueAsDate = new Date();
+        document.getElementById('freelance').value = '-';
+        btn.disabled = false;
+        btn.innerText = 'Simpan Laporan';
+    })
+    .catch(error => {
+        console.error('Error!', error.message);
+        alert('Gagal mengirim data. Cek koneksi atau URL.');
+        btn.disabled = false;
+        btn.innerText = 'Simpan Laporan';
+    });
+});
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log("TeknisiApp Ready!"))
+        .catch(err => console.error("PWA Failed", err));
+    });
+  }
+
+</script>
+
+</body>
+</html>
